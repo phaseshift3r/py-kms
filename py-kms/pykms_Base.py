@@ -123,7 +123,8 @@ class kmsBase:
                         from pytz.exceptions import UnknownTimeZoneError
                         try:
                                 tz = get_localzone()
-                                local_dt = tz.localize(requestDatetime)
+                                from datetime import datetime
+                                local_dt = datetime.fromtimestamp(requestDatetime.timestamp(), tz=tz)
                         except UnknownTimeZoneError:
                                 pretty_printer(log_obj = loggersrv.warning,
                                                put_text = "{reverse}{yellow}{bold}Unknown time zone ! Request time not localized.{end}")

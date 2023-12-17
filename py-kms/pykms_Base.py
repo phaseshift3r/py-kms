@@ -4,13 +4,12 @@ import binascii
 import logging
 import time
 import uuid
-import socket
 
 from pykms_Structure import Structure
 from pykms_DB2Dict import kmsDB2Dict
 from pykms_PidGenerator import epidGenerator
 from pykms_Filetimes import filetime_to_dt
-from pykms_Sql import sql_initialize, sql_update, sql_update_epid
+from pykms_Sql import sql_update, sql_update_epid
 from pykms_Format import justify, byterize, enco, deco, pretty_printer
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -119,20 +118,30 @@ class kmsBase:
                                 
                 # Localize the request time, if module "tzlocal" is available.
                 try:
+                        from datetime import datetime
                         from tzlocal import get_localzone
                         from pytz.exceptions import UnknownTimeZoneError
                         try:
+<<<<<<< HEAD
                                 tz = get_localzone()
                                 from datetime import datetime
                                 local_dt = datetime.fromtimestamp(requestDatetime.timestamp(), tz=tz)
+=======
+                                local_dt = datetime.fromisoformat(str(requestDatetime)).astimezone(get_localzone())
+>>>>>>> 599574bb607dfc7a9293987dd67d3a7550b28c1c
                         except UnknownTimeZoneError:
                                 pretty_printer(log_obj = loggersrv.warning,
                                                put_text = "{reverse}{yellow}{bold}Unknown time zone ! Request time not localized.{end}")
                                 local_dt = requestDatetime
                 except ImportError:
                         pretty_printer(log_obj = loggersrv.warning,
-                                       put_text = "{reverse}{yellow}{bold}Module 'tzlocal' not available ! Request time not localized.{end}")
+                                       put_text = "{reverse}{yellow}{bold}Module 'tzlocal' or 'pytz' not available ! Request time not localized.{end}")
                         local_dt = requestDatetime
+                except Exception as e:
+                    # Just in case something else goes wrong
+                    loggersrv.warning('Okay, something went horribly wrong while localizing the request time (proceeding anyways): ' + str(e))
+                    local_dt = requestDatetime
+                    pass
 
                 # Activation threshold.
                 # https://docs.microsoft.com/en-us/windows/deployment/volume-activation/activate-windows-10-clients-vamt                
@@ -163,6 +172,10 @@ could be detected as not genuine !{end}" %currentClientCount)
                 # Get a name for SkuId, AppId.        
                 kmsdb = kmsDB2Dict()
                 appName, skuName = str(applicationId), str(skuId)
+<<<<<<< HEAD
+=======
+ 
+>>>>>>> 599574bb607dfc7a9293987dd67d3a7550b28c1c
                 appitems = kmsdb[2]
                 for appitem in appitems:
                         kmsitems = appitem['KmsItems']
@@ -209,7 +222,6 @@ could be detected as not genuine !{end}" %currentClientCount)
                                                        'product' : infoDict["skuId"]})
                 # Create database.
                 if self.srv_config['sqlite']:
-                        sql_initialize(self.srv_config['sqlite'])
                         sql_update(self.srv_config['sqlite'], infoDict)
 
                 return self.createKmsResponse(kmsRequest, currentClientCount, appName)

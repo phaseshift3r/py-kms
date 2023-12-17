@@ -7,7 +7,7 @@
 Follows a list of usable parameters:
 
     ip <IPADDRESS>
-> Instructs py-kms to listen on _IPADDRESS_ (can be an hostname too). If this option is not specified, _IPADDRESS_ 0.0.0.0 is used.
+> Instructs py-kms to listen on _IPADDRESS_ (can be an hostname too). If this option is not specified, _IPADDRESS_ `::` is used.
 
     port <PORT>
 > Define TCP _PORT_ the KMS service is listening on. Default is 1688.
@@ -17,7 +17,7 @@ Follows a list of usable parameters:
 Use _EPID_ as Windows _EPID_. If no _EPID_ is specified, a random one will be generated.
 
     -l or --lcid <LCID>
-> Do not randomize the locale ID part of the _EPID_ and use _LCID_ instead.
+> Specify the _LCID_ part of the _EPID_. If an _EPID_ is manually specified, this setting is ignored. Default is 1033 (English - US).
 The Language Code Identifier (_LCID_) describes localizable information in Windows.
 This structure is used to identify specific languages for the purpose of customizing 
 software for particular languages and cultures. For example, it can specify the way dates, 
@@ -26,10 +26,9 @@ The _LCID_ must be specified as a decimal number (example: 1049 for "Russian - R
 By default py-kms generates a valid locale ID but this may lead to a value which is unlikely to occur in your country. 
 You may want to select the locale ID of your country instead. 
 See [here](https://msdn.microsoft.com/en-us/library/cc233982.aspx) for a list of valid _LCIDs_.
-If an _EPID_ is manually specified, this setting is ignored. Default is a fixed _LCID_ of 1033 (English - US). 
 
     -w or --hwid <HWID>
-> Use specified _HWID_ for all products. 
+> Use specified _HWID_ for all products. Use `-w RANDOM` to generate a random HWID. Default is random.
 Hardware Identification is a security measure used by Microsoft upon the activation of 
 the Windows operating system. As part of the Product Activation system, a unique
 HWID number is generated when the operating system is first installed. The _HWID_ identifies the hardware components that the system 
@@ -39,8 +38,7 @@ to make sure that the operating system is still running on the same device.
 If the two _HWID_ numbers differ too much then the operating system will shut down until Microsoft reactivates the product.
 The theory behind _HWID_ is to ensure that the operating system is not being used on any device other than the one
 for which it was purchased and registered.
-HWID must be an 16-character string of hex characters that are interpreted as a series of 8 bytes (big endian). 
-Default is _364F463A8863D35F_. To auto generate the _HWID_, type `-w RANDOM`.
+HWID must be an 16-character string of hex characters that are interpreted as a series of 8 bytes (big endian).
 
     -c or --client-count <CLIENTCOUNT>
 > Use this flag to specify the current _CLIENTCOUNT_. Default is None. Remember that a number >=25 is 
@@ -55,7 +53,6 @@ e.g. because it could not reach the server. The default is 120 minutes (2 hours)
 
     -s or --sqlite [<SQLFILE>]
 > Use this option to store request information from unique clients in an SQLite database. Deactivated by default.
-If enabled the default database file is _pykms_database.db_. You can also provide a specific location.
 
     -t0 or --timeout-idle <TIMEOUTIDLE>
 > Maximum inactivity time (in seconds) after which the connection with the client is closed. 
@@ -77,7 +74,7 @@ user@host ~/path/to/folder/py-kms $ python3 pykms_Server.py -V INFO
 ```
 creates _pykms_logserver.log_ with these initial messages:
 ```
-Mon, 12 Jun 2017 22:09:00 INFO     TCP server listening at 0.0.0.0 on port 1688.
+Mon, 12 Jun 2017 22:09:00 INFO     TCP server listening at :: on port 1688.
 Mon, 12 Jun 2017 22:09:00 INFO     HWID: 364F463A8863D35F
 ```
 
@@ -85,11 +82,11 @@ Mon, 12 Jun 2017 22:09:00 INFO     HWID: 364F463A8863D35F
 > Creates a _LOGFILE.log_ logging file. The default is named _pykms_logserver.log_.
 example:
 ```
-user@host ~/path/to/folder/py-kms $ python3 pykms_Server.py 192.168.1.102 8080 -F ~/path/to/folder/py-kms/newlogfile.log -V INFO -w RANDOM
+user@host ~/path/to/folder/py-kms $ python3 pykms_Server.py 192.168.1.102 1688 -F ~/path/to/folder/py-kms/newlogfile.log -V INFO -w RANDOM
 ```
 creates _newlogfile.log_ with these initial messages:
 ```
-Mon, 12 Jun 2017 22:09:00 INFO     TCP server listening at 192.168.1.102 on port 8080.
+Mon, 12 Jun 2017 22:09:00 INFO     TCP server listening at 192.168.1.102 on port 1688.
 Mon, 12 Jun 2017 22:09:00 INFO     HWID: 58C4F4E53AE14224
 ```
 
@@ -127,14 +124,14 @@ examples (with fictitious addresses and ports):
 
 | command | address (main) | backlog (main) | reuse port (main) | address (listen) | backlog (listen) | reuse port (listen) | dualstack (main / listen) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `python3 pykms_Server.py connect -b 12` | ('0.0.0.0', 1688) | 12 | True | [] | [] | [] | False |
+| `python3 pykms_Server.py connect -b 12` | ('::', 1688) | 12 | True | [] | [] | [] | False |
 | `python3 pykms_Server.py :: connect -b 12 -u -d` | ('::', 1688) | 12 | False | [] | [] | [] | True |
-| `python3 pykms_Server.py connect -n 1.1.1.1,1699 -b 10` | ('0.0.0.0', 1688) | 5 | True | [('1.1.1.1', 1699)] | [10] | [True] | False |
+| `python3 pykms_Server.py connect -n 1.1.1.1,1699 -b 10` | ('::', 1688) | 5 | True | [('1.1.1.1', 1699)] | [10] | [True] | False |
 | `python3 pykms_Server.py :: 1655 connect -n 2001:db8:0:200::7,1699 -d -b 10 -n 2.2.2.2,1677 -u` | ('::', 1655) | 5 | True | [('2001:db8:0:200::7', 1699), ('2.2.2.2', 1677)] | [10, 5] | [True, False] | True |
-| `python3 pykms_Server.py connect -b 12 -u -n 1.1.1.1,1699 -b 10 -n 2.2.2.2,1677 -b 15` | ('0.0.0.0', 1688) | 12 | False | [('1.1.1.1', 1699), ('2.2.2.2', 1677)] | [10, 15] | [False, False] | False |
-| `python3 pykms_Server.py connect -b 12 -n 1.1.1.1,1699 -u -n 2.2.2.2,1677` | ('0.0.0.0', 1688) | 12 | True | [('1.1.1.1', 1699), ('2.2.2.2', 1677)] | [12, 12] | [False, True] | False |
-| `python3 pykms_Server.py connect -d -u -b 8 -n 1.1.1.1,1699 -n 2.2.2.2,1677 -b 12` | ('0.0.0.0', 1688) | 8 | False | [('1.1.1.1', 1699), ('2.2.2.2', 1677)] | [8, 12] | [False, False] | True |
-| `python3 pykms_Server.py connect -b 11 -u -n ::,1699 -n 2.2.2.2,1677` | ('0.0.0.0', 1688) | 11 | False | [('::', 1699), ('2.2.2.2', 1677)] | [11, 11] | [False, False] | False |
+| `python3 pykms_Server.py connect -b 12 -u -n 1.1.1.1,1699 -b 10 -n 2.2.2.2,1677 -b 15` | ('::', 1688) | 12 | False | [('1.1.1.1', 1699), ('2.2.2.2', 1677)] | [10, 15] | [False, False] | False |
+| `python3 pykms_Server.py connect -b 12 -n 1.1.1.1,1699 -u -n 2.2.2.2,1677` | ('::', 1688) | 12 | True | [('1.1.1.1', 1699), ('2.2.2.2', 1677)] | [12, 12] | [False, True] | False |
+| `python3 pykms_Server.py connect -d -u -b 8 -n 1.1.1.1,1699 -n 2.2.2.2,1677 -b 12` | ('::', 1688) | 8 | False | [('1.1.1.1', 1699), ('2.2.2.2', 1677)] | [8, 12] | [False, False] | True |
+| `python3 pykms_Server.py connect -b 11 -u -n ::,1699 -n 2.2.2.2,1677` | ('::', 1688) | 11 | False | [('::', 1699), ('2.2.2.2', 1677)] | [11, 11] | [False, False] | False |
 
 ### pykms_Client.py
 If _py-kms_ server doesn't works correctly, you can test it with the KMS client `pykms_Client.py`, running on the same machine where you started `pykms_Server.py`.
@@ -143,6 +140,12 @@ For example (in separated bash windows) run these commands:
 ```
 user@host ~/path/to/folder/py-kms $ python3 pykms_Server.py -V DEBUG
 user@host ~/path/to/folder/py-kms $ python3 pykms_Client.py -V DEBUG
+```
+
+If you wish to get KMS server from DNS server: (ie perform a DNS resolution on _vlmcs._tcp.domain.tld, if ever there are several answers, only the first one is selected.). Althought that mode is supposed to be specific to devices connect to an Active Directory domain, setting a fully qualified name and a workgroup may help to use that automatic KMS discovery feature.  
+```
+user@host ~/path/to/folder/py-kms $ python3 pykms_Client.py -V DEBUG -F STDOUT -D contoso.com
+user@host ~/path/to/folder/py-kms $ python3 pykms_Client.py -V DEBUG -F STDOUT -D contoso.com
 ```
 
 Or if you want better specify:
@@ -198,8 +201,8 @@ You can enable same _pykms_Server.py_ suboptions of `-F`.
 This are the currently used `ENV` statements from the Dockerfile(s). For further references what exactly the parameters mean, please see the start parameters for the [server](Usage.html#pykms-server-py).
 ```
 # IP-address
-# The IP address to listen on. The default is "0.0.0.0" (all interfaces).
-ENV IP 0.0.0.0
+# The IP address to listen on. The default is "::" (all interfaces).
+ENV IP ::
 
 # TCP-port
 # The network port to listen on. The default is "1688".
@@ -226,15 +229,11 @@ ENV ACTIVATION_INTERVAL 120
 # Use this flag to specify the renewal interval (in minutes). Default is 10080 minutes (7 days).
 ENV RENEWAL_INTERVAL 10080
 
-# Use SQLITE
-# Use this flag to store request information from unique clients in an SQLite database.
-ENV SQLITE false
-
 # hwid
 # Use this flag to specify a HWID. 
 # The HWID must be an 16-character string of hex characters.
-# The default is "364F463A8863D35F" or type "RANDOM" to auto generate the HWID.
-ENV HWID 364F463A8863D35F
+# The default is "RANDOM" to auto-generate the HWID or type a specific value.
+ENV HWID RANDOM
 
 # log level ("CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG")
 # Use this flag to set a Loglevel. The default is "ERROR".

@@ -11,6 +11,15 @@ import logging
 import argparse
 from collections import Sequence
 
+
+
+#Since Python 3.10: Sequence is located on "collections.abc" instead of "collections"
+if (sys.version_info >= (3,10)):
+    from collections.abc import Sequence
+else:
+    from collections import Sequence
+
+
 __version__             = "0.1"
 __license__             = "MIT License"
 __author__              = u"Matteo ℱan <SystemRage@protonmail.com>"
